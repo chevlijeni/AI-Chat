@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Environment Variables (CRITICAL!)
+.env
+
+# MacOS
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
