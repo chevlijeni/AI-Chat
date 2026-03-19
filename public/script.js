@@ -48,9 +48,9 @@ function loadSession(id) {
     chatWindow.innerHTML = '';
 
     // Render all messages except the hidden system prompt
-    messages.forEach(msg => {
+    messages.forEach((msg, index) => {
         if (msg.role !== 'system') {
-            addMessageToDOM(msg.content, msg.role);
+            addMessageToDOM(msg.content, msg.role, index);
         }
     });
 }
@@ -130,7 +130,7 @@ userInput.addEventListener('keydown', function (e) {
     }
 });
 
-function addMessageToDOM(content, role) {
+function addMessageToDOM(content, role, index = null) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', role);
 
@@ -147,6 +147,19 @@ function addMessageToDOM(content, role) {
     }
 
     wrapperDiv.appendChild(contentDiv);
+
+    if (role === 'user' && index !== null) {
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-message-btn';
+        editBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        editBtn.title = "Edit message";
+        wrapperDiv.appendChild(editBtn);
+
+        editBtn.addEventListener('click', () => {
+            enterEditMode(messageDiv, contentDiv, wrapperDiv, editBtn, index);
+        });
+    }
+
     messageDiv.appendChild(wrapperDiv);
     chatWindow.appendChild(messageDiv);
 
@@ -154,6 +167,102 @@ function addMessageToDOM(content, role) {
         top: chatWindow.scrollHeight,
         behavior: 'smooth'
     });
+}
+
+function enterEditMode(messageDiv, contentDiv, wrapperDiv, editBtn, index) {
+    const originalText = messages[index].content;
+    const textarea = document.createElement('textarea');
+    textarea.className = 'edit-textarea';
+    textarea.value = originalText;
+
+    textarea.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Trigger initial resize
+    setTimeout(() => {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }, 0);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'edit-actions';
+
+    const submitBtn = document.createElement('button');
+    submitBtn.textContent = 'Save & Submit';
+    submitBtn.className = 'edit-submit-btn';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'edit-cancel-btn';
+
+    // Swap content
+    messageDiv.classList.add('editing-mode');
+    wrapperDiv.classList.add('editing');
+    contentDiv.style.display = 'none';
+    editBtn.style.display = 'none';
+
+    const editContainer = document.createElement('div');
+    editContainer.className = 'edit-container';
+    actionsDiv.appendChild(cancelBtn);
+    actionsDiv.appendChild(submitBtn);
+    editContainer.appendChild(textarea);
+    editContainer.appendChild(actionsDiv);
+
+    wrapperDiv.appendChild(editContainer);
+
+    cancelBtn.addEventListener('click', () => {
+        editContainer.remove();
+        contentDiv.style.display = 'block';
+        editBtn.style.display = '';
+        wrapperDiv.classList.remove('editing');
+        messageDiv.classList.remove('editing-mode');
+    });
+
+    submitBtn.addEventListener('click', () => {
+        const newText = textarea.value.trim();
+        if (!newText) return;
+        submitEditedMessage(newText, index);
+    });
+}
+
+async function submitEditedMessage(newText, index) {
+    // Truncate messages to the edited index
+    messages = messages.slice(0, index);
+    // Add the new user message
+    messages.push({ role: 'user', content: newText });
+    saveToLocalStorage();
+
+    // Rerender chat window up to the edited message
+    loadSession(activeSessionId);
+
+    // Call the API for the AI response
+    showTypingIndicator();
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages })
+        });
+
+        const data = await response.json();
+        hideTypingIndicator();
+
+        if (response.ok && data.message) {
+            addMessageToDOM(data.message.content, 'ai', messages.length);
+            messages.push(data.message);
+            saveToLocalStorage();
+        } else {
+            const errorText = data.error || 'Sorry, I encountered an error.';
+            addMessageToDOM(errorText, 'ai', messages.length);
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        hideTypingIndicator();
+        addMessageToDOM('Failed to connect to the server.', 'ai', messages.length);
+    }
 }
 
 function showTypingIndicator() {
@@ -188,7 +297,7 @@ chatForm.addEventListener('submit', async (e) => {
     if (!text) return;
 
     // Add user message to UI & history
-    addMessageToDOM(text, 'user');
+    addMessageToDOM(text, 'user', messages.length);
     messages.push({ role: 'user', content: text });
     saveToLocalStorage();
     renderSidebar(); // Need to render in case title changed
@@ -209,17 +318,17 @@ chatForm.addEventListener('submit', async (e) => {
         hideTypingIndicator();
 
         if (response.ok && data.message) {
-            addMessageToDOM(data.message.content, 'ai');
+            addMessageToDOM(data.message.content, 'ai', messages.length);
             messages.push(data.message);
             saveToLocalStorage();
         } else {
             const errorText = data.error || 'Sorry, I encountered an error.';
-            addMessageToDOM(errorText, 'ai');
+            addMessageToDOM(errorText, 'ai', messages.length);
         }
     } catch (error) {
         console.error('Fetch error:', error);
         hideTypingIndicator();
-        addMessageToDOM('Failed to connect to the server.', 'ai');
+        addMessageToDOM('Failed to connect to the server.', 'ai', messages.length);
     }
 });
 

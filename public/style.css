@@ -501,3 +501,104 @@ button svg {
         transform: scale(1.2);
     }
 }
+
+/* Edit Message Styles */
+.message-wrapper {
+    position: relative;
+}
+
+.edit-message-btn {
+    position: absolute;
+    bottom: -15px;
+    right: 15px;
+    background: var(--bg-dark);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.2s, background 0.2s;
+    z-index: 10;
+}
+
+.message.user .message-wrapper:hover .edit-message-btn:not(.editing-mode .edit-message-btn) {
+    display: flex;
+    opacity: 1;
+}
+
+.edit-message-btn:hover {
+    background: var(--accent);
+    color: white;
+}
+
+.edit-message-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.message-wrapper.editing {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--glass-border);
+    box-shadow: none !important;
+    padding: 15px;
+    width: 100%;
+}
+
+.edit-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.edit-textarea {
+    width: 100%;
+    min-height: 80px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: white;
+    padding: 10px;
+    font-size: 0.95rem;
+    resize: vertical;
+    outline: none;
+}
+
+.edit-textarea:focus {
+    border-color: var(--accent);
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.edit-submit-btn,
+.edit-cancel-btn {
+    width: auto;
+    height: 36px;
+    padding: 0 15px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.edit-submit-btn {
+    background: var(--accent);
+}
+
+.edit-submit-btn:hover {
+    background: #5b4cc4;
+}
+
+.edit-cancel-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+}
+
+.edit-cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}

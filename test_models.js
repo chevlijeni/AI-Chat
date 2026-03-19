@@ -7,7 +7,7 @@ async function listModels() {
     try {
         // There is no direct listModels in the SDK easily accessible without an HTTP call or similar
         // but we can try a few standard ones.
-        const models = ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+        const models = ['gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
         for (const modelName of models) {
             try {
                 const model = genAI.getGenerativeModel({ model: modelName });
