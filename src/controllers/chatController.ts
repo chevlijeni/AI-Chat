@@ -7,10 +7,6 @@ import * as dbService from '../services/dbService';
 class ChatController {
     public async createSession(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = (req.user as any).id;
             const { title } = req.body;
             const sessionId = await dbService.createChatSession(userId, title || 'New Chat');
@@ -23,10 +19,6 @@ class ChatController {
 
     public async getSessions(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = (req.user as any).id;
             const sessions = await dbService.getUserSessions(userId);
             res.json({ sessions });
@@ -38,10 +30,6 @@ class ChatController {
 
     public async getHistory(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
 
             const userId = (req.user as any).id;
             const sessionId = parseInt(req.params.sessionId as string, 10);
@@ -61,10 +49,6 @@ class ChatController {
 
     public async deleteSession(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = (req.user as any).id;
             const sessionId = parseInt(req.params.sessionId as string, 10);
             if (isNaN(sessionId)) {
@@ -81,10 +65,6 @@ class ChatController {
 
     public async editAndResend(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
 
             const userId = (req.user as any).id;
             const sessionId = parseInt(req.params.sessionId as string, 10);
@@ -113,10 +93,6 @@ class ChatController {
 
     public async handleChat(req: Request, res: Response): Promise<void> {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized. Please login to chat.' });
-                return;
-            }
 
             const { messages, sessionId } = req.body;
             const userId = (req.user as any).id;

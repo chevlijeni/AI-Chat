@@ -35,23 +35,23 @@ let userToken = localStorage.getItem('jeni_jwt_token');
 const ENCRYPTION_SECRET = "super_secret_encryption_key_112233"; // MUST MATCH .env
 
 function encrypt(text) {
-    const key = CryptoJS.SHA256(ENCRYPTION_SECRET).toString(CryptoJS.enc.Base64).substr(0, 32);
+    const key = CryptoJS.SHA256(ENCRYPTION_SECRET);
     const iv = CryptoJS.lib.WordArray.random(16);
-    const encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(key), {
+    const encrypted = CryptoJS.AES.encrypt(text, key, {
         iv: iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
     });
-    return iv.toString() + ":" + encrypted.toString();
+    return iv.toString(CryptoJS.enc.Base64) + ":" + encrypted.toString();
 }
 
 function decrypt(cipherText) {
     try {
         const parts = cipherText.split(':');
-        const iv = CryptoJS.enc.Hex.parse(parts[0]);
-        const key = CryptoJS.SHA256(ENCRYPTION_SECRET).toString(CryptoJS.enc.Base64).substr(0, 32);
+        const iv = CryptoJS.enc.Base64.parse(parts[0]);
+        const key = CryptoJS.SHA256(ENCRYPTION_SECRET);
         const encrypted = parts[1];
-        const decrypted = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Utf8.parse(key), {
+        const decrypted = CryptoJS.AES.decrypt(encrypted, key, {
             iv: iv,
             mode: CryptoJS.mode.CBC,
             padding: CryptoJS.pad.Pkcs7
@@ -59,7 +59,7 @@ function decrypt(cipherText) {
         return decrypted.toString(CryptoJS.enc.Utf8);
     } catch (e) {
         console.error("Decryption error", e);
-        return cipherText;
+        return null;
     }
 }
 
@@ -139,8 +139,12 @@ async function loadSidebarSessions() {
         const data = res.data;
 
         chatHistoryList.innerHTML = '';
+        if (!data || !data.sessions) {
+            createNewSession();
+            return;
+        }
 
-        if (data.sessions && data.sessions.length > 0) {
+        if (data.sessions.length > 0) {
             data.sessions.forEach(session => {
                 const li = document.createElement('li');
                 li.classList.add('history-item');
