@@ -1,4 +1,6 @@
-function handleGeminiError(error, res) {
+import { Response } from 'express';
+
+export function handleGeminiError(error: any, res: Response): void {
     console.error('Gemini Error:', error);
     let errorMsg = error.message || 'Failed to fetch response from Gemini';
 
@@ -14,7 +16,3 @@ function handleGeminiError(error, res) {
 
     res.status(500).json({ error: errorMsg });
 }
-
-module.exports = {
-    handleGeminiError
-};

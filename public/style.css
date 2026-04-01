@@ -437,7 +437,7 @@ textarea::placeholder {
     color: var(--text-secondary);
 }
 
-button {
+#sendBtn {
     background: var(--accent);
     border: none;
     width: 44px;
@@ -451,16 +451,16 @@ button {
     transition: transform 0.2s, background 0.2s;
 }
 
-button:hover {
+#sendBtn:hover {
     background: #5b4cc4;
     transform: scale(1.05);
 }
 
-button:active {
+#sendBtn:active {
     transform: scale(0.95);
 }
 
-button svg {
+#sendBtn svg {
     width: 20px;
     height: 20px;
 }
@@ -509,21 +509,24 @@ button svg {
 
 .edit-message-btn {
     position: absolute;
-    bottom: -15px;
-    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: -40px;
     background: var(--bg-dark);
     border: 1px solid var(--glass-border);
     color: var(--text-secondary);
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: none;
     opacity: 0;
-    transition: opacity 0.2s, background 0.2s;
+    transition: opacity 0.2s, background 0.2s, color 0.2s;
     z-index: 10;
+    align-items: center;
+    justify-content: center;
 }
 
-.message.user .message-wrapper:hover .edit-message-btn:not(.editing-mode .edit-message-btn) {
+.message.user:hover .edit-message-btn {
     display: flex;
     opacity: 1;
 }
@@ -584,6 +587,9 @@ button svg {
     border-radius: 8px;
     font-size: 0.85rem;
     font-weight: 600;
+    color: white;
+    cursor: pointer;
+    border: none;
 }
 
 .edit-submit-btn {
@@ -597,8 +603,116 @@ button svg {
 .edit-cancel-btn {
     background: transparent;
     border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
 }
 
 .edit-cancel-btn:hover {
     background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Auth Styles */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+}
+
+.avatar-img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #333;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.logout-btn {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    color: #ff7675;
+    background: rgba(255, 118, 117, 0.1);
+}
+
+.login-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 11, 30, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.login-card h2 {
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #fff, #a29bfe);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.login-card p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: white;
+    color: #3c4043;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #dadce0;
+}
+
+.btn-google:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
