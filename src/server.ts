@@ -8,6 +8,8 @@ import authRoutes from './routes/authRoutes';
 import chatRoutes from './routes/chatRoutes';
 import historyRoutes from './routes/historyRoutes';
 
+import { encryptionMiddleware } from './middlewares/encryptionMiddleware';
+
 dotenv.config();
 
 const app = express();
@@ -16,20 +18,11 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-// Setup Express Session
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key-12345',
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
-    }
-}));
+// 🛡️ Global Security: AES Payload Encryption/Decryption
+app.use(encryptionMiddleware);
 
-// Initialize Passport
+// Initialize Passport (Don't need sessions anymore!)
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Mount Routes
 app.use('/auth', authRoutes);

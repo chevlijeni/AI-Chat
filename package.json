@@ -17,6 +17,7 @@
     "express": "^5.2.1",
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.20.0",
     "node-fetch": "^3.3.2",
     "passport": "^0.7.0",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/express-session": "^1.18.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/mysql": "^2.15.27",
     "@types/node": "^25.5.0",
     "@types/passport": "^1.0.17",

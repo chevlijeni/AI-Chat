@@ -5,30 +5,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const express_session_1 = __importDefault(require("express-session"));
 const passport_1 = __importDefault(require("./config/passport"));
 const database_1 = require("./config/database");
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const chatRoutes_1 = __importDefault(require("./routes/chatRoutes"));
 const historyRoutes_1 = __importDefault(require("./routes/historyRoutes"));
+const encryptionMiddleware_1 = require("./middlewares/encryptionMiddleware");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 app.use(express_1.default.json());
 app.use(express_1.default.static('public'));
-// Setup Express Session
-app.use((0, express_session_1.default)({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key-12345',
-    resave: false,
-    saveUninitialized: false,
-    store: database_1.sessionStore,
-    cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
-    }
-}));
-// Initialize Passport
+// 🛡️ Global Security: AES Payload Encryption/Decryption
+app.use(encryptionMiddleware_1.encryptionMiddleware);
+// Initialize Passport (Don't need sessions anymore!)
 app.use(passport_1.default.initialize());
-app.use(passport_1.default.session());
 // Mount Routes
 app.use('/auth', authRoutes_1.default);
 app.use('/api/chat', chatRoutes_1.default);

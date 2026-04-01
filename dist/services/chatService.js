@@ -6,15 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const gemini_1 = __importDefault(require("../config/gemini"));
 const dbService_1 = require("./dbService");
 class ChatService {
-    async generateResponse(userId, currentMessages) {
-        let systemInstruction = "You are Jeni AI, a helpful, intelligent, and friendly AI assistant created by Jeni. Your goal is to assist the user with any questions they have, providing clear, concise, and friendly answers.";
+    async generateResponse(sessionId, userId, currentMessages) {
         // Find the latest user message from the request
         const latestUserMsg = currentMessages.slice().reverse().find(m => m.role !== 'system' && m.role !== 'ai' && m.role !== 'model');
         if (latestUserMsg) {
-            await (0, dbService_1.saveChatMessage)(userId, 'user', latestUserMsg.content);
+            await (0, dbService_1.saveChatMessage)(sessionId, userId, 'user', latestUserMsg.content);
         }
+        return this.generateResponseFromDbOnly(sessionId, userId);
+    }
+    async generateResponseFromDbOnly(sessionId, userId) {
+        let systemInstruction = "You are Jeni AI, a helpful, intelligent, and friendly AI assistant created by Jeni. Your goal is to assist the user with any questions they have, providing clear, concise, and friendly answers.";
         // Fetch FULL history from database to ensure continuity regardless of frontend state
-        const dbHistory = await (0, dbService_1.getChatHistory)(userId);
+        const dbHistory = await (0, dbService_1.getChatHistory)(userId, sessionId);
         const historyForGemini = [];
         for (const msg of dbHistory) {
             if (msg.role === 'system') {
@@ -35,7 +38,7 @@ class ChatService {
         const result = await requestModel.generateContent({ contents: historyForGemini });
         const responseText = result.response.text();
         // Save AI response
-        await (0, dbService_1.saveChatMessage)(userId, 'ai', responseText);
+        await (0, dbService_1.saveChatMessage)(sessionId, userId, 'ai', responseText);
         return responseText;
     }
 }

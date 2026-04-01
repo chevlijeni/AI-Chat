@@ -20,7 +20,8 @@ if (logoutBtn) {
             confirmButtonText: 'Yes, log out!'
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = '/auth/logout';
+                localStorage.removeItem('jeni_jwt_token');
+                window.location.href = '/';
             }
         });
     });
@@ -28,16 +29,86 @@ if (logoutBtn) {
 
 let messages = [];
 let currentSessionId = null;
+let userToken = localStorage.getItem('jeni_jwt_token');
+
+// 🔒 Client-Side Encryption Helpers
+const ENCRYPTION_SECRET = "super_secret_encryption_key_112233"; // MUST MATCH .env
+
+function encrypt(text) {
+    const key = CryptoJS.SHA256(ENCRYPTION_SECRET).toString(CryptoJS.enc.Base64).substr(0, 32);
+    const iv = CryptoJS.lib.WordArray.random(16);
+    const encrypted = CryptoJS.AES.encrypt(text, CryptoJS.enc.Utf8.parse(key), {
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    return iv.toString() + ":" + encrypted.toString();
+}
+
+function decrypt(cipherText) {
+    try {
+        const parts = cipherText.split(':');
+        const iv = CryptoJS.enc.Hex.parse(parts[0]);
+        const key = CryptoJS.SHA256(ENCRYPTION_SECRET).toString(CryptoJS.enc.Base64).substr(0, 32);
+        const encrypted = parts[1];
+        const decrypted = CryptoJS.AES.decrypt(encrypted, CryptoJS.enc.Utf8.parse(key), {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+        console.error("Decryption error", e);
+        return cipherText;
+    }
+}
+
+/**
+ * Enhanced fetch to handle encryption and JWT
+ */
+async function secureFetch(url, options = {}) {
+    if (!options.headers) options.headers = {};
+    if (userToken) {
+        options.headers['Authorization'] = `Bearer ${userToken}`;
+    }
+
+    // Encrypt outgoing body
+    if (options.body && typeof options.body === 'string') {
+        const encryptedBody = encrypt(options.body);
+        options.body = JSON.stringify({ data: encryptedBody });
+        options.headers['Content-Type'] = 'application/json';
+    }
+
+    const response = await fetch(url, options);
+
+    // Decrypt incoming response
+    const json = await response.json();
+    if (json && json.data && typeof json.data === 'string' && response.ok) {
+        const decryptedData = decrypt(json.data);
+        return { ok: response.ok, status: response.status, data: JSON.parse(decryptedData) };
+    }
+
+    return { ok: response.ok, status: response.status, data: json };
+}
+
+// Check for token in URL (after Google callback)
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromUrl = urlParams.get('token');
+if (tokenFromUrl) {
+    userToken = tokenFromUrl;
+    localStorage.setItem('jeni_jwt_token', userToken);
+    window.history.replaceState({}, document.title, "/");
+}
 
 const INITIAL_SYSTEM_MESSAGE = { id: 0, role: 'system', content: 'You are Jeni AI, a helpful and friendly AI assistant created by Jeni.' };
 const INITIAL_AI_GREETING = { id: -1, role: 'ai', content: 'Hello! I\'m Jeni AI. How can I help you today?' };
 
 async function init() {
     try {
-        const authRes = await fetch('/auth/status');
-        const authData = await authRes.json();
+        const authRes = await secureFetch('/auth/status');
+        const authData = authRes.data;
 
-        if (!authData.authenticated) {
+        if (!authData || !authData.authenticated) {
             document.getElementById('loginOverlay').style.display = 'flex';
             document.getElementById('chatForm').style.pointerEvents = 'none';
             document.getElementById('chatForm').style.opacity = '0.5';
@@ -64,8 +135,8 @@ async function init() {
 
 async function loadSidebarSessions() {
     try {
-        const res = await fetch('/api/history/sessions');
-        const data = await res.json();
+        const res = await secureFetch('/api/history/sessions');
+        const data = res.data;
 
         chatHistoryList.innerHTML = '';
 
@@ -126,7 +197,7 @@ async function deleteSession(sessionId) {
 
     if (result.isConfirmed) {
         try {
-            await fetch(`/api/history/${sessionId}`, { method: 'DELETE' });
+            await secureFetch(`/api/history/${sessionId}`, { method: 'DELETE' });
             if (currentSessionId === sessionId) {
                 currentSessionId = null;
                 localStorage.removeItem('jeni_active_session');
@@ -140,13 +211,12 @@ async function deleteSession(sessionId) {
 
 async function createNewSession() {
     try {
-        const res = await fetch('/api/chat/session', {
+        const res = await secureFetch('/api/chat/session', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title: 'New Chat' })
         });
-        const data = await res.json();
-        if (data.sessionId) {
+        const data = res.data;
+        if (data && data.sessionId) {
             currentSessionId = data.sessionId;
             localStorage.setItem('jeni_active_session', currentSessionId);
             messages = [INITIAL_SYSTEM_MESSAGE];
@@ -174,8 +244,8 @@ async function loadSession(sessionId) {
     localStorage.setItem('jeni_active_session', currentSessionId);
 
     try {
-        const res = await fetch(`/api/history/${sessionId}`);
-        const data = await res.json();
+        const res = await secureFetch(`/api/history/${sessionId}`);
+        const data = res.data;
 
         document.querySelectorAll('.history-item').forEach(item => {
             item.classList.remove('active');
@@ -317,15 +387,14 @@ async function submitEdit(messageId, newContent) {
 
     showTypingIndicator();
     try {
-        const response = await fetch(`/api/chat/${currentSessionId}/edit/${messageId}`, {
+        const res = await secureFetch(`/api/chat/${currentSessionId}/edit/${messageId}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ newContent })
         });
-        const data = await response.json();
+        const data = res.data;
         hideTypingIndicator();
 
-        if (response.ok && data.fullHistory) {
+        if (res.ok && data.fullHistory) {
             messages = data.fullHistory;
             renderMessages();
             loadSidebarSessions();
@@ -390,16 +459,15 @@ chatForm.addEventListener('submit', async (e) => {
     showTypingIndicator();
 
     try {
-        const response = await fetch('/api/chat', {
+        const res = await secureFetch('/api/chat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: [{ role: 'user', content: text }], sessionId: currentSessionId })
         });
 
-        const data = await response.json();
+        const data = res.data;
         hideTypingIndicator();
 
-        if (response.ok && data.fullHistory) {
+        if (res.ok && data.fullHistory) {
             messages = data.fullHistory;
             renderMessages();
 
