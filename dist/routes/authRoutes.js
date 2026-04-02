@@ -6,21 +6,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const passport_1 = __importDefault(require("passport"));
 const router = (0, express_1.Router)();
-// Initiate Google Login
-router.get('/google', passport_1.default.authenticate('google', {
-    scope: ['profile', 'email']
+// Initiate GitHub Login
+router.get('/github', passport_1.default.authenticate('github', {
+    scope: ['user:email']
 }));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-jwt-secret';
-// Google Login Callback
-router.get('/google/callback', passport_1.default.authenticate('google', {
+// GitHub Login Callback
+router.get('/github/callback', passport_1.default.authenticate('github', {
     failureRedirect: '/?error=login_failed',
-    session: false // We are using JWT, not sessions
+    session: false
 }), (req, res) => {
-    // Successful authentication, generate JWT
     const user = req.user;
     const token = jsonwebtoken_1.default.sign({ id: user.id, display_name: user.display_name, avatar_url: user.avatar_url }, JWT_SECRET, { expiresIn: '7d' });
-    // Redirect to frontend with token in URL
     res.redirect(`/?token=${token}`);
 });
 const authMiddleware_1 = require("../middlewares/authMiddleware");

@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy, Profile, VerifyCallback } from 'passport-google-oauth20';
+import { Strategy as GitHubStrategy } from 'passport-github2';
 import pool from './database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 
@@ -20,34 +20,34 @@ passport.deserializeUser(async (id: number, done) => {
     }
 });
 
-passport.use(new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID || 'dummy-client-id',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'dummy-client-secret',
-    callbackURL: '/auth/google/callback'
-}, async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID || 'dummy-client-id',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || 'dummy-client-secret',
+    callbackURL: '/auth/github/callback',
+    scope: ['user:email']
+}, async (accessToken: string, refreshToken: string, profile: any, done: any) => {
     try {
-        const googleId = profile.id;
-        const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : '';
-        const displayName = profile.displayName;
+        const githubId = profile.id;
+        const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
+        const displayName = profile.displayName || profile.username;
         const avatarUrl = profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null;
 
         // Check if user exists
-        const [existingUsers] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE google_id = ?', [googleId]);
+        const [existingUsers] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE github_id = ?', [githubId]);
 
         if (existingUsers.length > 0) {
-            // User exists, login
             return done(null, existingUsers[0]);
         }
 
         // New user, insert into DB
         const [result] = await pool.query<ResultSetHeader>(
-            'INSERT INTO users (google_id, email, display_name, avatar_url) VALUES (?, ?, ?, ?)',
-            [googleId, email, displayName, avatarUrl]
+            'INSERT INTO users (github_id, email, display_name, avatar_url) VALUES (?, ?, ?, ?)',
+            [githubId, email, displayName, avatarUrl]
         );
 
         const newUser = {
             id: result.insertId,
-            google_id: googleId,
+            github_id: githubId,
             email,
             display_name: displayName,
             avatar_url: avatarUrl
@@ -55,7 +55,7 @@ passport.use(new GoogleStrategy({
 
         return done(null, newUser);
     } catch (error: any) {
-        console.error('Error during Google authentication:', error);
+        console.error('Error during GitHub authentication:', error);
         return done(error, undefined);
     }
 }));

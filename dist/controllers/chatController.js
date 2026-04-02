@@ -43,10 +43,6 @@ const dbService = __importStar(require("../services/dbService"));
 class ChatController {
     async createSession(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = req.user.id;
             const { title } = req.body;
             const sessionId = await dbService.createChatSession(userId, title || 'New Chat');
@@ -59,10 +55,6 @@ class ChatController {
     }
     async getSessions(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = req.user.id;
             const sessions = await dbService.getUserSessions(userId);
             res.json({ sessions });
@@ -74,10 +66,6 @@ class ChatController {
     }
     async getHistory(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = req.user.id;
             const sessionId = parseInt(req.params.sessionId, 10);
             if (isNaN(sessionId)) {
@@ -94,10 +82,6 @@ class ChatController {
     }
     async deleteSession(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = req.user.id;
             const sessionId = parseInt(req.params.sessionId, 10);
             if (isNaN(sessionId)) {
@@ -114,10 +98,6 @@ class ChatController {
     }
     async editAndResend(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized' });
-                return;
-            }
             const userId = req.user.id;
             const sessionId = parseInt(req.params.sessionId, 10);
             const messageId = parseInt(req.params.messageId, 10);
@@ -140,10 +120,6 @@ class ChatController {
     }
     async handleChat(req, res) {
         try {
-            if (!req.isAuthenticated()) {
-                res.status(401).json({ error: 'Unauthorized. Please login to chat.' });
-                return;
-            }
             const { messages, sessionId } = req.body;
             const userId = req.user.id;
             if (!messages || !Array.isArray(messages)) {

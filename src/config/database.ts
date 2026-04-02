@@ -41,8 +41,8 @@ export async function initializeDatabase() {
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                google_id VARCHAR(255) UNIQUE NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
+                github_id VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE,
                 display_name VARCHAR(255) NOT NULL,
                 avatar_url VARCHAR(500),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

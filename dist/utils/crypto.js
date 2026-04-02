@@ -7,32 +7,31 @@ exports.encrypt = encrypt;
 exports.decrypt = decrypt;
 const crypto_1 = __importDefault(require("crypto"));
 const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || 'fallback-encryption-secret-32-chars-long';
-// Ensure the key is exactly 32 bytes for AES-256
-const key = crypto_1.default.createHash('sha256').update(String(ENCRYPTION_SECRET)).digest('base64').substr(0, 32);
+// Get raw 32-byte hash buffer for maximum compatibility
+const key = crypto_1.default.createHash('sha256').update(String(ENCRYPTION_SECRET)).digest();
 const algorithm = 'aes-256-cbc';
 /**
- * Encrypts a string into a hex-encoded cipher text
+ * Encrypts a string into a URL-friendly Base64 package
  */
 function encrypt(text) {
     const iv = crypto_1.default.randomBytes(16);
-    const cipher = crypto_1.default.createCipheriv(algorithm, Buffer.from(key), iv);
-    let encrypted = cipher.update(text);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    // Send IV attached to the result so it can be used for decryption
-    return iv.toString('hex') + ':' + encrypted.toString('hex');
+    const cipher = crypto_1.default.createCipheriv(algorithm, key, iv);
+    let encrypted = cipher.update(text, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
+    return iv.toString('base64') + ':' + encrypted;
 }
 /**
- * Decrypts hex-encoded cipher text back into plain text
+ * Decrypts Base64 package back into plain text
  */
 function decrypt(text) {
     try {
-        const textParts = text.split(':');
-        const iv = Buffer.from(textParts.shift(), 'hex');
-        const encryptedText = Buffer.from(textParts.join(':'), 'hex');
-        const decipher = crypto_1.default.createDecipheriv(algorithm, Buffer.from(key), iv);
-        let decrypted = decipher.update(encryptedText);
-        decrypted = Buffer.concat([decrypted, decipher.final()]);
-        return decrypted.toString();
+        const [iv_b64, data_b64] = text.split(':');
+        const iv = Buffer.from(iv_b64, 'base64');
+        const encryptedText = Buffer.from(data_b64, 'base64');
+        const decipher = crypto_1.default.createDecipheriv(algorithm, key, iv);
+        let decrypted = decipher.update(encryptedText, undefined, 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
     }
     catch (error) {
         console.error('Decryption failed:', error);

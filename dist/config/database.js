@@ -12,12 +12,17 @@ const express_mysql_session_1 = __importDefault(require("express-mysql-session")
 dotenv_1.default.config();
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'ai_chat',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: process.env.DB_SSL_CA ? {
+        ca: process.env.DB_SSL_CA,
+        rejectUnauthorized: true
+    } : undefined
 };
 // Create connection pool
 const pool = promise_1.default.createPool(dbConfig);
@@ -33,8 +38,8 @@ async function initializeDatabase() {
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                google_id VARCHAR(255) UNIQUE NOT NULL,
-                email VARCHAR(255) UNIQUE NOT NULL,
+                github_id VARCHAR(255) UNIQUE NOT NULL,
+                email VARCHAR(255) UNIQUE,
                 display_name VARCHAR(255) NOT NULL,
                 avatar_url VARCHAR(500),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

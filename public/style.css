@@ -696,20 +696,20 @@ textarea::placeholder {
     line-height: 1.5;
 }
 
-.btn-google {
+.btn-github {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    background: white;
-    color: #3c4043;
+    background: #24292e;
+    color: white;
     text-decoration: none;
     padding: 12px 24px;
     border-radius: 12px;
     font-weight: 600;
     font-size: 1rem;
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #dadce0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-google:hover {
