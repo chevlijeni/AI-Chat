@@ -17,7 +17,7 @@ const dbConfig: any = {
     queueLimit: 0,
     ssl: process.env.DB_SSL_CA ? {
         ca: process.env.DB_SSL_CA,
-        rejectUnauthorized: true
+        rejectUnauthorized: false
     } : undefined
 };
 
