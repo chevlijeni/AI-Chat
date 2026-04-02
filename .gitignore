@@ -7,6 +7,10 @@ node_modules/
 # MacOS
 .DS_Store
 
+# Build artifacts
+dist/
+*.pem
+
 # Logs
 logs
 *.log

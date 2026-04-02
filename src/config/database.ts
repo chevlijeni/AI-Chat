@@ -6,14 +6,19 @@ import MySQLStoreFactory from 'express-mysql-session';
 
 dotenv.config();
 
-const dbConfig = {
+const dbConfig: any = {
     host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306'),
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'ai_chat',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    ssl: process.env.DB_SSL_CA ? {
+        ca: process.env.DB_SSL_CA,
+        rejectUnauthorized: true
+    } : undefined
 };
 
 // Create connection pool
