@@ -55,7 +55,7 @@ passport.use(new GitHubStrategy({
 
         return done(null, newUser);
     } catch (error: any) {
-        console.error('Error during GitHub authentication:', error);
+        console.error('❌ Passport GitHub Strategy Error:', error);
         return done(error, undefined);
     }
 }));
