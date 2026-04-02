@@ -2,7 +2,7 @@
 
 A modern, multi-threaded AI chat application built with Node.js, Express, TypeScript, MySQL, and Google Gemini 2.5 Flash.
 
-**🔗 [Check the Live URL](https://ai-chat-jeni.onrender.com)**
+**🔗 [Check the Live URL](https://ai-chat-481k.onrender.com/)**
 
 ## Features
 - **Dynamic Multi-Threaded Chat:** Create multiple distinct chat sessions.
