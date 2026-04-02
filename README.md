@@ -2,18 +2,20 @@
 
 A modern, multi-threaded AI chat application built with Node.js, Express, TypeScript, MySQL, and Google Gemini 2.5 Flash.
 
+**🔗 [Check the Live URL](https://ai-chat-jeni.onrender.com)**
+
 ## Features
 - **Dynamic Multi-Threaded Chat:** Create multiple distinct chat sessions.
 - **Edit and Regenerate:** Modify past prompts to organically branch AI conversation timelines.
 - **Persistent Storage:** MySQL database securely holds user accounts and chat histories.
-- **Google OAuth Login:** Secure user authentication via Passport.js.
+- **GitHub OAuth Login:** Secure user authentication via GitHub.
 - **Stunning UI:** Fully responsive glassmorphism dark-theme with SweetAlert2 interactions.
 
 ## Prerequisites
 Before cloning this project, ensure you have installed:
-- [Node.js](https://nodejs.org/) (v16 or higher)
+- [Node.js](https://nodejs.org/) (v20 or higher)
 - [MySQL Server](https://dev.mysql.com/downloads/) (Running locally on your computer, or remotely)
-- A [Google Cloud Console](https://console.cloud.google.com/) account (to get OAuth 2.0 Credentials)
+- A [GitHub Developer Account](https://github.com/settings/developers) (to get GitHub OAuth App Credentials)
 - A [Google AI Studio](https://aistudio.google.com/) account (to get a Gemini API Key)
 
 ## Complete Setup Guide
@@ -39,8 +41,8 @@ cp .env.example .env
 ```
 Open `.env` in a text editor and fill in your sensitive credentials:
 - **`GEMINI_API_KEY`**: Your Gemini API Key.
-- **`DB_PASSWORD`**: The password for your MySQL user (leave blank if your root user has no password).
-- **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: Created from your Google Cloud Console (*Ensure your authorized redirect URI in Google is exactly `http://localhost:3000/auth/google/callback`*).
+- **`DB_PASSWORD`**: The password for your MySQL user.
+- **`GITHUB_CLIENT_ID`** & **`GITHUB_CLIENT_SECRET`**: Created from your GitHub OAuth App (*Ensure your callback URI is exactly `http://localhost:3000/auth/github/callback`*).
 
 ### 4. Run the Server
 ```bash
@@ -52,3 +54,4 @@ npm run build
 npm start
 ```
 Open `http://localhost:3000` in your web browser. The app is ready!
+

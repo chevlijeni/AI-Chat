@@ -28,26 +28,26 @@ This document explains how the Jeni AI Chat project is structured and how data f
 This application uses a "Double-Lock" security architecture:
 
 ### 1. Stateless JWT Authentication
-We avoid `express-session` to maximize scalability.
-- **Login**: When Google verifies you, the backend issues a **JSON Web Token (JWT)**.
-- **Storage**: The token is stored in the browser's `localStorage`.
+We avoid `express-session` for most API requests to maximize scalability, although a session is temporarily used during the OAuth handshake.
+- **Login**: When GitHub verifies you, the backend issues a **JSON Web Token (JWT)**.
+- **Storage**: The token is stored in the browser's `localStorage` (as `jeni_jwt_token`).
 - **Validation**: Every request sends this token in the `Authorization: Bearer <TOKEN>` header. The backend verifies this before allowing access to chat history.
 
 ### 2. End-to-End Payload Encryption (AES-256)
 All communication between your browser and the server is encrypted at the application level (in addition to HTTPS).
 - **The "Cloak" Middleware**: All `POST`, `PUT`, and `DELETE` requests have their JSON bodies scrambled into a single encrypted string before being sent.
-- **Privacy**: Even if a network administrator or hacker scans your traffic, they cannot read your chat messages or user details—they will only see scrambled characters.
+- **Privacy**: Even if a network administrator or hacker scans your traffic, they cannot read your chat messages or user details.
 - **Secret**: The encryption uses an `ENCRYPTION_SECRET` shared between the frontend and backend.
 
 ## How the Code Works (Step-by-Step)
 
 ### 1. The Entry Point (`src/server.ts`)
-The server starts here. It initializes the Express app, connects to the MySQL database, sets up Google OAuth sessions, and mounts all the API routes under `/api` and `/auth`.
+The server starts here. It initializes the Express app, connects to the Aiven MySQL database, sets up GitHub OAuth via Passport.js, and mounts all the API routes.
 
 ### 2. Request Flow (Example: Sending a Chat)
 When you type a message and hit "Send":
 
-1.  **Frontend (`public/script.js`)**: Captures the input. It checks if there is a `userToken`.
+1.  **Frontend (`public/script.js`)**: Captures the input. It checks if there is a `jeni_jwt_token`.
 2.  **Encryption**: The message JSON is encrypted using `AES-256-CBC` into a safe string.
 3.  **Fetch**: A `POST` request is sent to `/api/chat` with the encrypted data and the JWT token in the headers.
 4.  **Encryption Middleware (`src/middlewares/encryptionMiddleware.ts`)**: The server intercepts the request, decrypts the body, and restores it to a standard JSON object.
@@ -58,11 +58,10 @@ When you type a message and hit "Send":
 
 ### 3. Multi-Session Logic
 - **Sessions**: Every chat you start is a "Session" in the `chat_sessions` table.
-- **Filtering**: When you click a chat in the sidebar, the frontend tells the backend "Give me history for Session #5". The backend runs a SQL query: `SELECT * FROM chat_history WHERE session_id = 5`.
+- **Filtering**: When you click a chat in the sidebar, the frontend tells the backend "Give me history for Session X".
 - **Isolation**: This ensures that when you talk to the AI in "Chat A", it doesn't remember what you said in "Chat B".
 
 ### 4. Editing a Message (Time Travel)
-This is a unique feature of this app:
 1. When you edit a message, the backend goes to that specific message in the database.
 2. It deletes all messages that happened *after* it.
 3. It updates the text of your message.
@@ -70,8 +69,10 @@ This is a unique feature of this app:
 5. This effectively "branches" the timeline.
 
 ## Technologies Used
-- **TypeScript**: Provides type safety (catches bugs before they happen).
-- **Passport.js**: Handles the complex "handshake" with Google for login.
-- **MySQL2**: High-performance database driver.
-- **Marked**: Converts the AI's "Markdown" text into beautiful HTML formatting.
-- **SweetAlert2**: Provides the modern, styled popups for logout and deletion.
+- **TypeScript**: Provides type safety and modern language features.
+- **Passport.js**: Handles the OAuth2 "handshake" with GitHub for login.
+- **MySQL2**: High-performance database driver for Aiven MySQL.
+- **Marked**: Converts the AI's Markdown text into HTML.
+- **SweetAlert2**: Modern, styled popups for UI interactions.
+- **CryptoJS**: Client-side library for AES encryption.
+
