@@ -716,3 +716,38 @@ textarea::placeholder {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
+.btn-github:hover {
+    transform: translateY(-2px);
+    background: #2f363d;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 8px;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle { display: block; }
+    .sidebar { 
+        position: fixed; 
+        left: -260px; 
+        top: 0; 
+        bottom: 0; 
+        width: 260px; 
+        z-index: 1000; 
+        transition: left 0.3s; 
+        background: rgba(10, 11, 30, 0.98); 
+    }
+    .sidebar.open { left: 0; }
+    .chat-container { width: 100%; }
+    .chat-header { padding: 15px; }
+    .chat-header h1 { font-size: 1.1rem; }
+    .message-wrapper { max-width: 92%; }
+    .chat-input-area { padding: 10px 15px 30px; }
+    .login-card { width: 92%; padding: 30px 20px; }
+}

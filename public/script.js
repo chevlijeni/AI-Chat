@@ -4,6 +4,14 @@ const userInput = document.getElementById('userInput');
 const chatHistoryList = document.getElementById('chatHistoryList');
 const newChatBtn = document.getElementById('newChatBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.querySelector('.sidebar');
+
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+}
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
