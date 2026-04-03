@@ -7,6 +7,10 @@ const logoutBtn = document.getElementById('logoutBtn');
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.querySelector('.sidebar');
 
+// ⚙️ Configuration: Set this if your backend is on a different URL (e.g. Render Web Service)
+// If hosted on Render Static Sites, change this to your Render Web Service URL.
+const API_BASE_URL = ""; // Leave empty for same-origin relative paths
+
 if (menuToggle) {
     menuToggle.addEventListener('click', () => {
         sidebar.classList.toggle('open');
@@ -87,7 +91,7 @@ async function secureFetch(url, options = {}) {
         options.headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(url, options);
+    const response = await fetch(API_BASE_URL + url, options);
 
     // Decrypt incoming response
     const json = await response.json();
@@ -111,10 +115,54 @@ if (tokenFromUrl) {
 const INITIAL_SYSTEM_MESSAGE = { id: 0, role: 'system', content: 'You are Jeni AI, a helpful and friendly AI assistant created by Jeni.' };
 const INITIAL_AI_GREETING = { id: -1, role: 'ai', content: 'Hello! I\'m Jeni AI. How can I help you today?' };
 
+async function waitForBackend() {
+    const loaderStatus = document.getElementById('loaderStatus');
+    let attempts = 0;
+    const maxAttempts = 60; // 60 seconds for Render free tier cold start
+
+    while (attempts < maxAttempts) {
+        try {
+            // Using a simple fetch to check if backend is alive
+            const res = await fetch(API_BASE_URL + '/auth/status');
+            if (res.status !== 502 && res.status !== 503 && res.status !== 504) {
+                return true;
+            }
+        } catch (e) {
+            // Network error usually means it's still starting
+        }
+        attempts++;
+        if (attempts === 5) loaderStatus.textContent = "Waking up AI engine...";
+        if (attempts === 15) loaderStatus.textContent = "Almost there, preparing environment...";
+        if (attempts === 30) loaderStatus.textContent = "Still working on it... Render's free tier can be slow.";
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    return false;
+}
+
+function hideLoader() {
+    const loader = document.getElementById('initialLoader');
+    if (loader) {
+        loader.classList.add('fade-out');
+        setTimeout(() => loader.style.display = 'none', 800);
+    }
+}
+
 async function init() {
     try {
+        // 🚀 Step 1: Wait for backend to be ready
+        const isReady = await waitForBackend();
+        if (!isReady) {
+            document.getElementById('loaderStatus').textContent = "Connection timed out. Please refresh.";
+            return;
+        }
+
+        // 🚀 Step 2: Proceed with normal Auth init
         const authRes = await secureFetch('/auth/status');
         const authData = authRes.data;
+
+        // 🚀 Step 3: Hide loader once we have the data
+        hideLoader();
 
         if (!authData || !authData.authenticated) {
             document.getElementById('loginOverlay').style.display = 'flex';

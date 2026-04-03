@@ -23,7 +23,8 @@ router.get('/github/callback', passport.authenticate('github', {
         JWT_SECRET,
         { expiresIn: '7d' }
     );
-    res.redirect(`/?token=${token}`);
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    res.redirect(`${frontendUrl}/?token=${token}`);
 });
 
 import { authenticateToken, AuthRequest } from '../middlewares/authMiddleware';
